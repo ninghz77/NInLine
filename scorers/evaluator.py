@@ -1,11 +1,12 @@
 from core.comp_vs_comp import ComputerVsComputer
-from scorers.scorer_base import StupidScorer, RandomScorer
+from scorers.simple_scorers import StupidScorer, RandomScorer
 from scorers.half_line_scorer import HalfLineScorer
 from scorers.half_line_scorer2 import HalfLineScorer2
-
+from scorers.opponent_scorer import HLOpponentScorer
 
 def Evaluate(N, m, num_races=1):
   scorers_cls = [HalfLineScorer, HalfLineScorer2]
+#  scorers_cls = [StupidScorer, RandomScorer]
   evaluator = Evaluator(N, m, scorers_cls, num_races)
   evaluator.evaluate()
   evaluator.display_stats()
@@ -57,6 +58,7 @@ class Evaluator:
     print("Race: player 1 ({}) vs player 2 ({})...".format(
       game.scorer1.name, game.scorer2.name))
     game.play()
+    print()
     self.set_scorer_stats(game, game.player1)
     self.set_scorer_stats(game, game.player2)
 

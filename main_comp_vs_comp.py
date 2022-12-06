@@ -1,6 +1,6 @@
 import turtle
 from core.comp_vs_comp import ComputerVsComputer
-from scorers.scorer_base import StupidScorer, RandomScorer
+from scorers.simple_scorers import StupidScorer, RandomScorer
 from scorers.half_line_scorer import HalfLineScorer
 from scorers.half_line_scorer2 import HalfLineScorer2
 

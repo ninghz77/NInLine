@@ -1,8 +1,8 @@
 import numpy as np
-from scorers.scorer_base import ScorerBase
+from scorers.scorer_base import RuleBasedScorerBase
 
 
-class HalfLineScorer2(ScorerBase):
+class HalfLineScorer2(RuleBasedScorerBase):
 
   def __init__(self, grids, m, player):
     super(HalfLineScorer2, self).__init__(grids, m, player)
@@ -14,18 +14,18 @@ class HalfLineScorer2(ScorerBase):
     return self.rand_init_grid()
 
   def best_grid(self):
-    sz = self.grids.shape
     max_score = -1
     max_grid = (-1, -1)
-    for i in range(sz[0]):
-      for j in range(sz[1]):
-        if self.grids[i, j] != 0:
-          continue
-        score = self.score_half_line_at_grid(i, j)
-        if max_score < score:
-          max_score = score
-          max_grid = (i, j)
-    return max_grid
+    pruned_grids = self.prune_grids()
+    for grid in pruned_grids:
+      i, j = grid
+      if self.grids[i, j] != 0:
+        continue
+      score = self.score_half_line_at_grid(i, j)
+      if max_score < score:
+        max_score = score
+        max_grid = (i, j)
+    return max_grid, max_score
 
   def score_half_line_at_grid(self, i, j):
     sz = self.grids.shape
@@ -99,9 +99,8 @@ class HalfLineScorer2(ScorerBase):
       score += self.max_num
 
     # check the end of the neighbor
-    for j in range(i, min(i + 2, self.m)):
-      if half_line[j] == 0:
-        score += (j - i + 1) * self.base_score
+    if half_line[i] == 0:
+      score += self.base_score / 2
 
     # check the neighboring opponent steps
     for i in range(1, self.m + 1):
@@ -115,9 +114,7 @@ class HalfLineScorer2(ScorerBase):
       score += self.max_num / 2
 
     # check the end of the neighbor
-    if i > 1:
-      for j in range(i, min(i + 2, self.m)):
-        if half_line[j] == 0:
-          score += (j - i + 1) * self.base_score * 0.9 / 2
+    if i > 1 and half_line[i] == 0:
+      score += self.base_score * 0.9 / 2
 
     return score

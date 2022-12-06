@@ -1,7 +1,7 @@
 import numpy as np
-from scorers.scorer_base import ScorerBase
+from scorers.scorer_base import RuleBasedScorerBase
 
-class FullLineScorer(ScorerBase):
+class FullLineScorer(RuleBasedScorerBase):
   
   def __init__(self, grids, m, player):
     super(FullLineScorer, self).__init__(grids, m, player)
@@ -25,7 +25,7 @@ class FullLineScorer(ScorerBase):
         if max_score < score:
           max_score = score
           max_grid = (i, j)
-    return max_grid
+    return max_grid, max_score
     
   def score_full_line_at_grid(self, i, j):
     max_len = self.m * 2 + 1

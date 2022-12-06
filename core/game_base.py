@@ -1,7 +1,17 @@
 import numpy as np
 from scorers.scorer_base import ScorerBase
 
+class PlayerLog:
+  def __init__(self, player):
+    self.player = player
+    self.used_time = 0
+    self.num_steps = 0
 
+  def print_log(self):
+    print("Player {}: avg time {}, used time {}, num_steps {}".format(
+      self.player, self.used_time / max(1, self.num_steps), self.used_time, self.num_steps
+    ))
+    
 class GameBase:
 
   def __init__(
@@ -16,20 +26,26 @@ class GameBase:
     self.m = m
     self.player1 = 1
     self.player2 = 2
-    self.num_steps = 0
     self.winner = 0
     self.crashed_player = 0
     self.board = None
     self.scorer1 = player1_scorer_cls(self.grids, self.m, self.player1)
     self.scorer2 = player2_scorer_cls(self.grids, self.m, self.player2)
+    self.player_logs = [PlayerLog(self.player1), PlayerLog(self.player2)]
 
   def grid_valid(self, i, j):
     sz = self.grids.shape
     return i >= 0 and i < sz[0] and j >= 0 and j < sz[1] \
       and self.grids[i, j] == 0
 
+  def get_player_log(self, player):
+    return self.player_logs[player-1]
+    
+  def total_steps(self):
+    return self.get_player_log(self.player1).num_steps + self.get_player_log(self.player2).num_steps
+    
   def grids_full(self):
-    return self.grids.size == self.num_steps
+    return self.grids.size <= self.total_steps()
 
   def game_over(self):
     return self.winner != 0 or self.crashed_player != 0 or self.grids_full()
@@ -44,7 +60,10 @@ class GameBase:
 
   def draw_game_over_text(self):
     if self.board:
-      self.board.draw_game_over_text(self.game_over_text())
+      self.board.draw_game_over_text(
+        self.game_over_text(),
+        self.crashed_player if self.crashed_player != 0 else self.winner,
+      )
 
   def opponent_player(self, player):
     if player == 0:
@@ -67,7 +86,7 @@ class GameBase:
       if self.board:
         self.board.draw_mark(i, j, player)
 
-      self.num_steps += 1
+      self.get_player_log(player).num_steps += 1
       win = self.check_winner(player)
       if win:
         self.winner = player
@@ -79,9 +98,11 @@ class GameBase:
     if self.grids_full():
       return -1, -1
     if player == self.player1:
-      return self.scorer1.best_grid()
+      grid, score = self.scorer1.best_grid()
+      return grid
     elif player == self.player2:
-      return self.scorer2.best_grid()
+      grid, score = self.scorer2.best_grid()
+      return grid
     else:
       raise ValueError("Invalid player id")
 
@@ -128,3 +149,7 @@ class GameBase:
         print(self.grids[i, j], end='|')
       print()
     print()
+
+  def print_logs(self):
+    self.get_player_log(self.player1).print_log()    
+    self.get_player_log(self.player2).print_log()

@@ -1,8 +1,8 @@
 import numpy as np
-from scorers.scorer_base import ScorerBase
+from scorers.scorer_base import RuleBasedScorerBase
 
 
-class HalfLineScorer(ScorerBase):
+class HalfLineScorer(RuleBasedScorerBase):
 
   def __init__(self, grids, m, player):
     super(HalfLineScorer, self).__init__(grids, m, player)
@@ -25,7 +25,7 @@ class HalfLineScorer(ScorerBase):
         if max_score < score:
           max_score = score
           max_grid = (i, j)
-    return max_grid
+    return max_grid, max_score
 
   def score_half_line_at_grid(self, i, j):
     sz = self.grids.shape

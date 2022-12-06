@@ -4,10 +4,22 @@ from core.board import Board
 
 class HumanVsHuman(GameBase):
 
-  def __init__(self, grid_size, N, m):
+  def __init__(
+    self,
+    grid_size,
+    N,
+    m,
+    player1_desc="human",
+    player2_desc="human",
+  ):
 
     super(HumanVsHuman, self).__init__(grid_size, N, m)
-    self.board = Board(grid_size, N)
+    self.board = Board(
+      grid_size,
+      N,
+      player1_desc=player1_desc,
+      player2_desc=player2_desc,
+    )
     self.current_player = self.player1
 
   def onclick(self, x, y):

@@ -6,13 +6,14 @@ class ScorerBase:
 
   def __init__(self, grids, m, player):
     self.name = "ScorerBase"
-    self.author = "ninghz"
+    self.author = "common"
     self.player = player
     self.opponent = 2 if player == 1 else 1
     self.grids = grids
     self.m = m
     self.max_num = 10e6
 
+  # return (i, j), score
   def best_grid(self):
     pass
 
@@ -26,41 +27,32 @@ class ScorerBase:
     j = np.random.randint(low=self.m - 1, high=sz[1] - self.m)
     return i, j
 
-
-class StupidScorer(ScorerBase):
-
-  def __init__(self, grids, m, player):
-    super(StupidScorer, self).__init__(grids, m, player)
-    self.name = "StupidScorer"
-    self.author = "ninghz"
-
-  def best_grid(self):
-    sz = self.grids.shape
-
-    for i in range(sz[0]):
-      for j in range(sz[1]):
-        if self.grids[i, j] == 0:
-          return i, j
-
-    return -1, -1
+  def opponent_player(self, player):
+    if player == 0:
+      return 0
+    return 2 if player == 1 else 1
 
 
-class RandomScorer(ScorerBase):
+class RuleBasedScorerBase(ScorerBase):
 
   def __init__(self, grids, m, player):
-    super(RandomScorer, self).__init__(grids, m, player)
-    self.name = "RandomScorer"
-    self.author = "ninghz"
-
-  def best_grid(self):
+    super(RuleBasedScorerBase, self).__init__(grids, m, player)
+    self.name = "RuleBasedScorerBase"
+    self.author = "common"
+    
+  def prune_grids(self):
     sz = self.grids.shape
-
-    valid_grids = []
+    t = int(np.ceil(self.m / 2))
+    pruned_grids = []
     for i in range(sz[0]):
       for j in range(sz[1]):
-        if self.grids[i, j] == 0:
-          valid_grids.append((i, j))
-
-    n = np.random.randint(len(valid_grids))
-
-    return valid_grids[n]
+        if self.grids[i, j] != 0:
+          continue
+        u = max(0, i - t + 1)
+        d = min(sz[0], i + t)
+        l = max(0, j - t + 1)
+        r = min(sz[1], j + t)
+        block = self.grids[u:d, l:r]
+        if np.any(block):
+          pruned_grids.append((i, j))
+    return pruned_grids
