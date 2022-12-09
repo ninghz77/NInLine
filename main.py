@@ -10,5 +10,5 @@ runner_map = {
   3: eval.run,  # evaluation selected Scorers
 }
 
-runner_id = 0
+runner_id = 3
 runner_map[runner_id]()

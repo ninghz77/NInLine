@@ -1,3 +1,12 @@
 {
-  "files": {}
+  "files": {
+    "scorers/scorer_base.py": [
+      {
+        "id": "775a9cd6-313d-44e8-b0ae-cc7884ad8f46",
+        "line": 46,
+        "version": 841,
+        "index": 1048
+      }
+    ]
+  }
 }
