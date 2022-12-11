@@ -5,4 +5,4 @@ def run():
   N = 15
   m = 5
 
-  evaluator.Evaluate(N, m, num_races=10)
+  evaluator.Evaluate(N, m, num_races=1)

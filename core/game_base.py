@@ -98,11 +98,11 @@ class GameBase:
     if self.grids_full():
       return -1, -1
     if player == self.player1:
-      grid, score = self.scorer1.best_grid()
-      return grid
+      best_grid = self.scorer1.best_grid()
+      return best_grid.grid
     elif player == self.player2:
-      grid, score = self.scorer2.best_grid()
-      return grid
+      best_grid = self.scorer2.best_grid()
+      return best_grid.grid
     else:
       raise ValueError("Invalid player id")
 

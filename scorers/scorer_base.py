@@ -1,3 +1,4 @@
+import heapq
 import numpy as np
 import math
 
@@ -23,8 +24,12 @@ class ScorerBase:
 
   def rand_init_grid(self):
     sz = self.grids.shape
-    i = np.random.randint(low=self.m - 1, high=sz[0] - self.m)
-    j = np.random.randint(low=self.m - 1, high=sz[1] - self.m)
+    hm = math.ceil(self.m/2)
+    if sz[0] <= 2 * hm or sz[1] <= 2 * hm:
+      return math.floor(sz[0] / 2), math.floor(sz[1] / 2)
+
+    i = np.random.randint(low=hm, high=sz[0] - hm)
+    j = np.random.randint(low=hm, high=sz[1] - hm)
     return i, j
 
   def opponent_player(self, player):
@@ -32,6 +37,13 @@ class ScorerBase:
       return 0
     return 2 if player == 1 else 1
 
+class ScoredGrid:
+  def __init__(self, score, grid) -> None:
+    self.score = score
+    self.grid = grid
+
+  def __lt__(self, other):
+    return self.score > other.score
 
 class RuleBasedScorerBase(ScorerBase):
 
@@ -56,3 +68,23 @@ class RuleBasedScorerBase(ScorerBase):
         if np.any(block):
           pruned_grids.append((i, j))
     return pruned_grids
+
+  def top_n_grids(self, n):
+    pruned_grids = self.prune_grids()
+    gridq = []
+    for grid in pruned_grids:
+      i, j = grid
+      if self.grids[i, j] != 0:
+        continue
+      score = self.score_grid(i, j)
+      heapq.heappush(gridq, ScoredGrid(score, (i, j)))
+    top_n = []
+    for k in range(min(n, len(gridq))):
+        top_n.append(heapq.heappop(gridq))
+
+    return top_n
+
+  def score_grid(self, i, j):
+    raise "{}.score_grid() NOT implemented.".format(self.name)
+
+  

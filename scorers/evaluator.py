@@ -1,12 +1,9 @@
 from core.comp_vs_comp import ComputerVsComputer
-from scorers.simple_scorers import StupidScorer, RandomScorer
 from scorers.half_line_scorer import HalfLineScorer
-from scorers.half_line_scorer2 import HalfLineScorer2
-from scorers.opponent_scorer import HLOpponentScorer
+from scorers.n_step_scorer import HLNStepScorer
 
 def Evaluate(N, m, num_races=1):
-  scorers_cls = [HalfLineScorer, HalfLineScorer2]
-#  scorers_cls = [StupidScorer, RandomScorer]
+  scorers_cls = [HLNStepScorer, HalfLineScorer]
   evaluator = Evaluator(N, m, scorers_cls, num_races)
   evaluator.evaluate()
   evaluator.display_stats()

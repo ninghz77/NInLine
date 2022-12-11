@@ -12,5 +12,3 @@ runner_map = {
 
 runner_id = 0
 runner_map[runner_id]()
-
-# test something

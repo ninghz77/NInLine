@@ -1,5 +1,5 @@
 import numpy as np
-from scorers.scorer_base import RuleBasedScorerBase
+from scorers.scorer_base import RuleBasedScorerBase, ScoredGrid
 
 
 class HalfLineScorer(RuleBasedScorerBase):
@@ -14,20 +14,10 @@ class HalfLineScorer(RuleBasedScorerBase):
     return self.rand_init_grid()
 
   def best_grid(self):
-    sz = self.grids.shape
-    max_score = -1
-    max_grid = (-1, -1)
-    for i in range(sz[0]):
-      for j in range(sz[1]):
-        if self.grids[i, j] != 0:
-          continue
-        score = self.score_half_line_at_grid(i, j)
-        if max_score < score:
-          max_score = score
-          max_grid = (i, j)
-    return max_grid, max_score
+    top_grids = self.top_n_grids(1)
+    return top_grids[0] if not top_grids else ScoredGrid(0, (-1, -1))
 
-  def score_half_line_at_grid(self, i, j):
+  def score_grid(self, i, j):
     sz = self.grids.shape
     max_len = self.m + 1
     score = 0

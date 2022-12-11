@@ -2,7 +2,6 @@ import turtle
 from core.comp_vs_comp import ComputerVsComputer
 from scorers.simple_scorers import StupidScorer, RandomScorer
 from scorers.half_line_scorer import HalfLineScorer
-from scorers.half_line_scorer2 import HalfLineScorer2
 
 
 def run():
@@ -17,6 +16,6 @@ def run():
     m,
     draw=True,
     player1_scorer_cls=HalfLineScorer,
-    player2_scorer_cls=HalfLineScorer2,
+    player2_scorer_cls=HalfLineScorer,
   )
   game.play()

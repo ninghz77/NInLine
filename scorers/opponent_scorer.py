@@ -15,8 +15,6 @@ class OpponentScorer(ScorerBase):
     opponent_scorer = self.internal_scorer_cls(self.grids, self.m, self.opponent_player(self.player))
     player_grid, player_score = player_scorer.best_grid()
     opponent_grid, opponent_score = opponent_scorer.best_grid()
-    print(player_grid, player_score, opponent_grid, self.opponent_weight * opponent_score) 
-    return opponent_grid, opponent_score
     if player_score >= self.opponent_weight * opponent_score:
       return player_grid, player_score
     else:
