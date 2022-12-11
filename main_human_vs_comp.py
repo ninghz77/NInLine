@@ -9,6 +9,9 @@ def run():
   N = 15
   m = 5
   grid_size = 25
+  # N = 3
+  # m = 3
+  # grid_size = 30
 
   turtle.speed(100)
   game = HumanVsComputer(

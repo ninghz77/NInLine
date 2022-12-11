@@ -38,6 +38,7 @@ class Board:
       turtle.goto(x0 + i * self.dx, y0)
       turtle.pendown()
       turtle.goto(x0 + i * self.dx, y0 + self.N * self.dy)
+    self.draw_line_num()
 
   def draw_mark(self, i, j, player):
     x0, y0 = self.top_left
@@ -86,3 +87,15 @@ class Board:
       -(self.N / 2 + 1) * self.dy,
       2,
     ),
+
+  def draw_line_num(self):
+    x0, y0 = self.top_left
+    for i in range(self.N):
+      turtle.penup()
+      turtle.goto(x0 - self.dx, y0 + (i + 1) * self.dy)
+      turtle.write(str(i), font=("Arial", 16))
+    for i in range(self.N):
+      turtle.penup()
+      turtle.goto(x0 + (i + 0.3) * self.dx, y0)
+      turtle.write(str(i), font=("Arial", 16))
+

@@ -41,6 +41,7 @@ class ScoredGrid:
   def __init__(self, score, grid) -> None:
     self.score = score
     self.grid = grid
+    self.win = False
 
   def __lt__(self, other):
     return self.score > other.score
@@ -76,14 +77,15 @@ class RuleBasedScorerBase(ScorerBase):
       i, j = grid
       if self.grids[i, j] != 0:
         continue
-      score = self.score_grid(i, j)
-      heapq.heappush(gridq, ScoredGrid(score, (i, j)))
+      scored_grid = self.score_grid(i, j)
+      heapq.heappush(gridq, scored_grid)
     top_n = []
     for k in range(min(n, len(gridq))):
         top_n.append(heapq.heappop(gridq))
 
     return top_n
 
+  # return ScoredGrid
   def score_grid(self, i, j):
     raise "{}.score_grid() NOT implemented.".format(self.name)
 
