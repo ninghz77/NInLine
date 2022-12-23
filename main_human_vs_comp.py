@@ -21,7 +21,7 @@ def run():
     N,
     m,
     scorer_cls=FLNStepScorer,
-    who_first="computer",  # computer or human
+    who_first="human",  # computer or human
   )
   screen = turtle.Screen()
   screen.onclick(game.onclick)
