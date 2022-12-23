@@ -36,6 +36,9 @@ class ScorerBase:
     if player == 0:
       return 0
     return 2 if player == 1 else 1
+  
+  def is_token(self, grid_val):
+    return grid_val == self.player or grid_val == self.opponent
 
 class ScoredGrid:
   def __init__(self, score, grid) -> None:

@@ -1,7 +1,9 @@
 import turtle
 from core.human_vs_comp import HumanVsComputer
 from scorers.half_line_scorer import HalfLineScorer
+from scorers.full_line_scorer import FullLineScorer
 from scorers.opponent_scorer import HLOpponentScorer
+from scorers.n_step_scorer import FLNStepScorer
 from scorers.n_step_scorer import HLNStepScorer
 
 
@@ -18,7 +20,7 @@ def run():
     grid_size,
     N,
     m,
-    scorer_cls=HLNStepScorer,
+    scorer_cls=FLNStepScorer,
     who_first="computer",  # computer or human
   )
   screen = turtle.Screen()

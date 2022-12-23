@@ -1,5 +1,6 @@
 import copy
 import numpy as np
+from scorers.full_line_scorer import FullLineScorer
 from scorers.half_line_scorer import HalfLineScorer
 from scorers.scorer_base import ScorerBase
 
@@ -95,5 +96,13 @@ class HLNStepScorer(NStepScorer):
     super(HLNStepScorer, self).__init__(
       grids, m, player, HalfLineScorer, top_n_steps=[5, 1, 3, 1], weight=0.8)
     self.name = "HLNStepScorer"
+    self.author = "ninghz"
+
+class FLNStepScorer(NStepScorer):
+
+  def __init__(self, grids, m, player):
+    super(FLNStepScorer, self).__init__(
+      grids, m, player, FullLineScorer, top_n_steps=[5, 1, 3, 1], weight=0.8)
+    self.name = "FLNStepScorer"
     self.author = "ninghz"
 
