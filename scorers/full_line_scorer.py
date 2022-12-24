@@ -114,6 +114,50 @@ class BridgePat(Patttern):
       score *= 2
     return self.scale_by_opp(score)
 
+  # Cross pattern
+  # 1      1
+  #   1  1
+  #     0
+class CrossPat(Patttern):
+  def __init__(self, max_num, base_score, is_self, m, cross_cands=None) -> None:
+    super(CrossPat, self).__init__(max_num, base_score, is_self)
+    self.m = m
+    self.cross_cands = cross_cands
+
+  def score(self):
+    if not self.cross_cands or len(self.cross_cands) < 2:
+      return 0
+
+    good_cand = 0
+    for cand in self.cross_cands:
+      if cand.num_tokens < self.m - 3:
+        continue
+      empty_ends = sorted(cand.empty_ends)
+      # assume we have not put token at the current pos, so we need +1
+      total_empty_ends = empty_ends[0] + empty_ends[1] + 1
+      if cand.num_tokens + total_empty_ends < self.m:
+        continue
+      if (cand.num_tokens >= self.m - 2) or \
+        (cand.num_tokens == self.m - 3 and empty_ends[0] >= 1 and total_empty_ends >= 4):
+        good_cand += 1
+
+    score = self.max_num / 4 if good_cand >= 2 else 0
+    return self.scale_by_opp(score)
+    
+class PattInfo:
+  def __init__(
+    self, 
+    num_tokens, 
+    empty_ends, 
+    is_self, 
+    is_bridge=False,
+    cross_candidate=False,
+  ) -> None:
+    self.num_tokens = num_tokens
+    self.empty_ends = empty_ends
+    self.is_self = is_self
+    self.is_bridge = is_bridge
+    self.cross_candidate = cross_candidate
 
 class FullLineScorer(RuleBasedScorerBase):
 
@@ -180,25 +224,15 @@ class FullLineScorer(RuleBasedScorerBase):
     return full_lines
 
   def score_full_lines(self, full_lines):
-    score = 0
-    for full_line in full_lines:
-      s, w = self.score_full_line(full_line)
-      score += s
-      if w:
-        return score, True
-
-    return score, False
-
-  def score_full_line(self, full_line):
     patterns = []
-    win = self.find_single_seg_patts(full_line, patterns)
+    self.find_patts_from_4_lines(full_lines, patterns)
     score = 0
     for pat in patterns:
       score += pat.score()
-    return score, win
+    return score, False
 
-  # return: #tokens, #empty, is_self
-  def one_side_of_single_seg(self, side):
+  # return: PattInfo
+  def one_side_patt_info(self, side):
     side_len = len(side)
     first = side[0]
     is_self = (first == self.player)
@@ -217,78 +251,172 @@ class FullLineScorer(RuleBasedScorerBase):
       else:
         break
 
-    return num_tokens, num_empty, is_self
+    return PattInfo(num_tokens, [num_empty, 0], is_self)
 
-  def create_a_bridge_patt(self, num_tokens, empty_ends, is_self, patterns):
-    patterns.append(
-      BridgePat(
-        self.max_num, self.base_score, is_self, empty_ends,
-        self.m - num_tokens, num_tokens
-      ))
-
-  def create_a_single_seg_patt(self, num_tokens, empty_ends, is_self, patterns):
-    if num_tokens == self.m:
-      patterns.append(WinPat(self.max_num, self.base_score, is_self))
-    elif num_tokens == self.m - 1:
+  def create_a_single_seg_patt(self, patt_info, patterns):
+    if patt_info.num_tokens == self.m:
+      patterns.append(WinPat(self.max_num, self.base_score, patt_info.is_self))
+    elif patt_info.num_tokens == self.m - 1:
       patterns.append(
-        MissingOnePat(self.max_num, self.base_score, is_self, empty_ends))
-    elif num_tokens == self.m - 2:
+        MissingOnePat(
+          self.max_num, 
+          self.base_score, 
+          patt_info.is_self, 
+          patt_info.empty_ends,
+        ),
+      )
+    elif patt_info.num_tokens == self.m - 2:
       patterns.append(
-        MissingTwoPat(self.max_num, self.base_score, is_self, empty_ends))
+        MissingTwoPat(
+          self.max_num, 
+          self.base_score, 
+          patt_info.is_self, 
+          patt_info.empty_ends,
+        ),
+      )
     else:
       patterns.append(
         MissingXPat(
-          self.max_num, self.base_score, is_self, empty_ends,
-          self.m - num_tokens, num_tokens
+          self.max_num, self.base_score, patt_info.is_self, patt_info.empty_ends,
+          self.m - patt_info.num_tokens, patt_info.num_tokens
         ))
 
-  def find_single_seg_patts(self, line, patterns):
+  def create_cross_patt(self, cross_cands, is_self, patterns):
+    if not cross_cands:
+      return
+    patterns.append(CrossPat(
+      self.max_num, 
+      self.base_score, 
+      is_self,
+      self.m,
+      cross_cands,
+    ))
+
+  def create_a_bridge_patt(self, patt_info, patterns):
+    patterns.append(
+      BridgePat(
+        self.max_num, self.base_score, patt_info.is_self, patt_info.empty_ends,
+        self.m - patt_info.num_tokens, patt_info.num_tokens
+      ))
+
+  def find_opponent_bridge_patt(self, patt_info_r, patt_info_l, patterns):
+    # if both sides are not self
+    if not patt_info_l.is_self and patt_info_l.num_tokens > 0 and not patt_info_r.is_self and patt_info_r.num_tokens > 0:
+      self.create_a_bridge_patt(
+        PattInfo(
+          patt_info_l.num_tokens + patt_info_r.num_tokens, 
+          [patt_info_l.empty_ends[0], patt_info_r.empty_ends[0]], 
+          False, 
+        ),
+        patterns,
+      )
+
+  def num_empty_other_side(self, patt_info_other):
+    num_empty = 1 # current pos
+    if patt_info_other.num_tokens <= 0:
+      num_empty += patt_info_other.empty_ends[0]
+    return num_empty
+
+  def find_opponent_side_patt(self, patt_info, patt_info_other, patterns):
+    if patt_info.num_tokens > 0 and not patt_info.is_self:
+      self.create_a_single_seg_patt(
+        PattInfo(
+          patt_info.num_tokens, 
+          [patt_info.empty_ends[0], self.num_empty_other_side(patt_info_other)], 
+          False,
+        ), 
+        patterns,
+      )
+
+  def find_self_patt(self, patt_info_r, patt_info_l, patterns):
+    patt_info = PattInfo(
+      num_tokens=1, # myself in the middle of the line
+      empty_ends=[0.0, 0.0],
+      is_self=True,
+    )
+    if patt_info_l.is_self:
+      patt_info.num_tokens += patt_info_l.num_tokens
+      patt_info.empty_ends[0] = patt_info_l.empty_ends[0]
+    elif patt_info_l.num_tokens <= 0:
+      patt_info.empty_ends[0] = patt_info_l.empty_ends[0]
+
+    if patt_info_r.is_self:
+      patt_info.num_tokens += patt_info_r.num_tokens
+      patt_info.empty_ends[1] = patt_info_r.empty_ends[0]
+    elif patt_info_r.num_tokens <= 0:
+      patt_info.empty_ends[1] += patt_info_r.empty_ends[0]
+
+    self.create_a_single_seg_patt(patt_info, patterns)
+    return patt_info
+
+  # side of a cross like
+  # 1      1
+  #   1  1
+  #     0
+  # assume we have not put token at the current pos
+  def cross_candidate_info(self, patt_info_r, patt_info_l, cross_cands):
+    if patt_info_l.num_tokens > 0 and patt_info_r.num_tokens > 0:
+      if patt_info_l.is_self != patt_info_r.is_self:
+        cross_cands += [patt_info_l, patt_info_r]
+      else:
+        # it is bridge
+        cross_cands.append(PattInfo(
+            patt_info_l.num_tokens + patt_info_r.num_tokens, 
+            [patt_info_l.empty_ends[0], patt_info_r.empty_ends[0]], 
+            patt_info_l.is_self, 
+            is_bridge=True,
+        ))
+    elif patt_info_l.num_tokens > 0:
+      cross_cands.append(PattInfo(
+          patt_info_l.num_tokens, 
+          [patt_info_l.empty_ends[0], patt_info_r.empty_ends[0]], 
+          patt_info_l.is_self, 
+      ))
+    else:
+      cross_cands.append(PattInfo(
+          patt_info_r.num_tokens, 
+          [patt_info_r.empty_ends[0], patt_info_l.empty_ends[0]], 
+          patt_info_r.is_self, 
+      ))
+
+  def split_cross_candidates(self, cross_cands):
+    self_cands = []
+    opp_cands = []
+    for cand in cross_cands:
+      if cand.is_self:
+        self_cands.append(cand)
+      else:
+        opp_cands.append(cand)
+    return self_cands, opp_cands
+
+  def find_patts_from_one_line(self, line, patterns, cross_cands):
     line_len = len(line)
     assert line_len == self.m * 2 + 1
     assert line[self.m] == self.player
 
     # look at right side seg
-    num_tokens_r, num_empty_r, is_self_r = self.one_side_of_single_seg(
-      line[self.m+1:]
-    )
+    patt_info_r = self.one_side_patt_info(line[self.m+1:])
     # look at left side seg
-    num_tokens_l, num_empty_l, is_self_l = self.one_side_of_single_seg(
-      line[:self.m][::-1]
-    )
-    if num_tokens_r > 0 and not is_self_r:
-      original_empty = 1
-      if num_tokens_l <= 0:
-        original_empty += num_empty_l
-      self.create_a_single_seg_patt(
-        num_tokens_r, [original_empty, num_empty_r], False, patterns)
-    if num_tokens_l > 0 and not is_self_l:
-      original_empty = 1
-      if num_tokens_r <= 0:
-        original_empty += num_empty_r
-      self.create_a_single_seg_patt(
-        num_tokens_l, [original_empty, num_empty_l], False, patterns)
+    patt_info_l = self.one_side_patt_info(line[:self.m][::-1])
+
+    self.find_opponent_side_patt(patt_info_r, patt_info_l, patterns)
+    self.find_opponent_side_patt(patt_info_l, patt_info_r, patterns)
     
     # look at the seg of itself
-    num_tokens = 1 # myself in the middle of the line
-    empty_ends = [0.0, 0.0]
-    if is_self_l:
-      num_tokens += num_tokens_l
-      empty_ends[0] = num_empty_l
-    elif num_tokens_l <= 0:
-      empty_ends[0] = num_empty_l
+    patt_info = self.find_self_patt(patt_info_r, patt_info_l, patterns)
 
-    if is_self_r:
-      num_tokens += num_tokens_r
-      empty_ends[1] = num_empty_r
-    elif num_tokens_r <= 0:
-      empty_ends[1] += num_empty_r
+    self.find_opponent_bridge_patt(patt_info_r, patt_info_l, patterns)
 
-    self.create_a_single_seg_patt(
-      num_tokens, empty_ends, True, patterns)
+    self.cross_candidate_info(patt_info_r, patt_info_l, cross_cands)
+    return patt_info.num_tokens >= self.m
 
-    # if both sides are not self
-    if not is_self_l and num_tokens_l > 0 and not is_self_r and num_tokens_r > 0:
-      self.create_a_bridge_patt(
-        num_tokens_l + num_tokens_r, [num_empty_l, num_empty_r], False, patterns)
-
-    return num_tokens >= self.m
+  def find_patts_from_4_lines(self, lines, patterns):
+    cross_cands = []
+    for full_line in lines:
+      win = self.find_patts_from_one_line(full_line, patterns, cross_cands)
+      if win:
+        return self.max_num, True
+    
+    self_cands, opp_cands = self.split_cross_candidates(cross_cands)
+    self.create_cross_patt(self_cands, True, patterns)
+    self.create_cross_patt(opp_cands, False, patterns)

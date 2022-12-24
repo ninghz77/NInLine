@@ -9,14 +9,20 @@ def run():
   N = 15
   m = 5
   grid_size = 30
+  draw = True
 
   turtle.speed(100)
   game = ComputerVsComputer(
     grid_size,
     N,
     m,
-    draw=True,
+    draw=draw,
     player1_scorer_cls=HalfLineScorer,
     player2_scorer_cls=FLNStepScorer,
   )
+
   game.play()
+  
+  if draw:
+    screen = turtle.Screen()
+    screen.mainloop()

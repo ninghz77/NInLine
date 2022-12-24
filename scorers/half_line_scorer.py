@@ -15,7 +15,7 @@ class HalfLineScorer(RuleBasedScorerBase):
 
   def best_grid(self):
     top_grids = self.top_n_grids(1)
-    return top_grids[0] if not top_grids else ScoredGrid(0, (-1, -1))
+    return top_grids[0] if top_grids else ScoredGrid(0, (-1, -1))
 
   def score_grid(self, i, j):
     sz = self.grids.shape
