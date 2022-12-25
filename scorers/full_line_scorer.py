@@ -36,7 +36,7 @@ class MissingOnePat(Patttern):
     if self.empty_ends[0] >= 1:
       score = self.max_num / 3
     elif self.empty_ends[1] >= 1:
-      score = self.base_score * 50
+      score = self.base_score * 100
     return score
     
 class MissingTwoPat(Patttern):
@@ -52,7 +52,7 @@ class MissingTwoPat(Patttern):
       return 0
     # one end is not empty or both ends has only one empty
     if self.empty_ends[0] == 0 or self.empty_ends[1] == 1:
-      score = self.base_score * 10
+      score = self.base_score * 20
     else:
       score = self.base_score * 500
     return self.scale_by_opp(score)
@@ -75,8 +75,8 @@ class MissingXPat(Patttern):
     if total_empty_ends < self.missing_x:
       return 0
   
-    score = self.base_score * self.patt_len
-    if self.empty_ends[0]  >= 1:
+    score = self.base_score * self.patt_len * self.patt_len
+    if self.empty_ends[0] >= 1:
       score *= 2
     return self.scale_by_opp(score)
 
@@ -104,13 +104,13 @@ class BridgePat(Patttern):
 
     if self.missing_x == 2:
       if self.empty_ends[0] >= 1:
-        score = self.base_score * 20
+        score = self.base_score * 500
       else:
-        score = self.base_score * 10
+        score = self.base_score * 20
       return self.scale_by_opp(score)
 
-    score = self.base_score * self.patt_len
-    if self.empty_ends[0]  >= 1:
+    score = self.base_score * self.patt_len * self.patt_len
+    if self.empty_ends[0] >= 1:
       score *= 2
     return self.scale_by_opp(score)
 

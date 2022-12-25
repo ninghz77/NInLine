@@ -15,6 +15,7 @@ def run():
   # m = 3
   # grid_size = 30
 
+  turtle.hideturtle()
   turtle.speed(100)
   game = HumanVsComputer(
     grid_size,

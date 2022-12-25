@@ -49,13 +49,16 @@ class HumanVsComputer(GameBase):
     else:
       self.human = self.player1
       self.computer = self.player2
+    self.in_click = False
 
   def onclick(self, x, y):
-    if self.game_over():
+    if self.game_over() or self.in_click:
       return
 
+    self.in_click = True
     i, j = self.board.mouse_point_to_grid_index(x, y)
     step_valid, win = self.step(i, j, self.human)
+    self.board.draw_turn(self.computer)
 
     if step_valid and not self.game_over():
       try:
@@ -64,6 +67,7 @@ class HumanVsComputer(GameBase):
         if not step_valid:
           print("Computer cannot get valid step. Human player win!")
           self.winner = self.human
+        self.board.draw_turn(self.human)
       except Exception as e:
         self.crashed_player = self.computer
         traceback.print_exc()
@@ -71,3 +75,5 @@ class HumanVsComputer(GameBase):
     if self.game_over():
       print(self.game_over_text())
       self.draw_game_over_text()
+
+    self.in_click = False
