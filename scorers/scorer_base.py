@@ -45,6 +45,7 @@ class ScoredGrid:
     self.score = score
     self.grid = grid
     self.win = False
+    self.player = 0
 
   def __lt__(self, other):
     return self.score > other.score

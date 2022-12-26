@@ -22,16 +22,23 @@ class GameBase:
     player1_scorer_cls=ScorerBase,
     player2_scorer_cls=ScorerBase,
   ):
-    self.grids = np.zeros((N, N), dtype=np.int32)
+    self.grid_size = grid_size
+    self.N = N
     self.m = m
     self.player1 = 1
     self.player2 = 2
     self.winner = 0
     self.crashed_player = 0
     self.board = None
-    self.scorer1 = player1_scorer_cls(self.grids, self.m, self.player1)
-    self.scorer2 = player2_scorer_cls(self.grids, self.m, self.player2)
+    self.player1_scorer_cls = player1_scorer_cls
+    self.player2_scorer_cls = player2_scorer_cls
+    
+  def start(self):
+    self.grids = np.zeros((self.N, self.N), dtype=np.int32)
+    self.scorer1 = self.player1_scorer_cls(self.grids, self.m, self.player1)
+    self.scorer2 = self.player2_scorer_cls(self.grids, self.m, self.player2)
     self.player_logs = [PlayerLog(self.player1), PlayerLog(self.player2)]
+    self.steps = []
 
   def grid_valid(self, i, j):
     sz = self.grids.shape
@@ -83,6 +90,7 @@ class GameBase:
   def step(self, i, j, player):
     if self.grid_valid(i, j):
       self.grids[i, j] = player
+      self.steps.append((player, i, j))
       if self.board:
         self.board.draw_mark(i, j, player)
 
@@ -153,3 +161,26 @@ class GameBase:
   def print_logs(self):
     self.get_player_log(self.player1).print_log()    
     self.get_player_log(self.player2).print_log()
+  
+  def set_winner(self):
+    if self.check_winner(self.player1):
+      self.winner = self.player1
+    elif self.check_winner(self.player2):
+      self.winner = self.player2
+    else:
+      self.winner = 0
+
+  def regret_step(self):
+    if len(self.steps) < 1:
+      return
+    step = self.steps[-1]
+    print("Regret: ", step)
+    self.grids[step[1], step[2]] = 0
+    if self.board:
+      self.board.erase_mark(step[1], step[2])
+    self.steps.pop()
+    self.set_winner()
+
+  def print_steps(self):
+    print("Past steps:")
+    print(self.steps)

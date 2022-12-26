@@ -6,13 +6,14 @@ from scorers.scorer_base import ScorerBase
 
 class ScoredPath:
   def __init__(self, scored_grid=None) -> None:
+    self.win = False
     self.score = 0
     self.scored_grids = [] if not scored_grid else [scored_grid]
 
   def print_path(self):
     print("Aggregated score: ", self.score)
     for sg in self.scored_grids:
-      print("  {}: {}".format(sg.grid, sg.score))
+      print("P{} {}: {}, {}".format(sg.player, sg.grid, sg.score, sg.win))
 
 class NStepScorer(ScorerBase):
 
@@ -29,6 +30,9 @@ class NStepScorer(ScorerBase):
     self.internal_scorer_cls = internal_scorer_cls
     self.weight = weight
     self.top_n_steps = top_n_steps
+
+  def init_grid(self):
+    return self.rand_init_grid()
 
   def score_paths(self, grids, player, top_n_s):
     if not top_n_s:
@@ -65,6 +69,7 @@ class NStepScorer(ScorerBase):
     first_grid = scored_path.scored_grids[0]
     if first_grid.win:  # Already win, set score to max
       scored_path.score = len(self.top_n_steps) * self.max_num
+      scored_path.win = True
       return scored_path
 
     score = 0
@@ -73,6 +78,7 @@ class NStepScorer(ScorerBase):
       score += scale * g.score
       scale *= -self.weight
     scored_path.score = score
+    scored_path.win = False
     return score
 
   def aggregate_score_for_paths(self, scored_paths):

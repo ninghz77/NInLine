@@ -29,7 +29,7 @@ class MissingOnePat(Patttern):
     total_empty_ends = self.empty_ends[0] + self.empty_ends[1]
     if total_empty_ends == 0:
       return 0
-    if total_empty_ends >= 1 and not self.is_self:
+    if not self.is_self:
       return self.max_num / 2
 
     score = 0
@@ -54,7 +54,8 @@ class MissingTwoPat(Patttern):
     if self.empty_ends[0] == 0 or self.empty_ends[1] == 1:
       score = self.base_score * 20
     else:
-      score = self.base_score * 500
+      score = self.base_score * 500 if self.is_self else self.max_num / 10
+
     return self.scale_by_opp(score)
 
     
@@ -104,7 +105,7 @@ class BridgePat(Patttern):
 
     if self.missing_x == 2:
       if self.empty_ends[0] >= 1:
-        score = self.base_score * 500
+        score = self.base_score * 500 if self.is_self else self.max_num / 10
       else:
         score = self.base_score * 20
       return self.scale_by_opp(score)
@@ -180,6 +181,7 @@ class FullLineScorer(RuleBasedScorerBase):
     scored_grid = ScoredGrid(0, (i, j))
     full_lines = self.make_full_lines(i, j)
     scored_grid.score, scored_grid.win = self.score_full_lines(full_lines)
+    scored_grid.player = self.player
     return scored_grid
 
   def make_full_lines(self, i, j):
@@ -225,11 +227,11 @@ class FullLineScorer(RuleBasedScorerBase):
 
   def score_full_lines(self, full_lines):
     patterns = []
-    self.find_patts_from_4_lines(full_lines, patterns)
+    win = self.find_patts_from_4_lines(full_lines, patterns)
     score = 0
     for pat in patterns:
       score += pat.score()
-    return score, False
+    return score, win
 
   # return: PattInfo
   def one_side_patt_info(self, side):
@@ -412,11 +414,13 @@ class FullLineScorer(RuleBasedScorerBase):
 
   def find_patts_from_4_lines(self, lines, patterns):
     cross_cands = []
+    win = False
     for full_line in lines:
-      win = self.find_patts_from_one_line(full_line, patterns, cross_cands)
-      if win:
-        return self.max_num, True
+      line_win = self.find_patts_from_one_line(full_line, patterns, cross_cands)
+      if line_win:
+        win = True
     
     self_cands, opp_cands = self.split_cross_candidates(cross_cands)
     self.create_cross_patt(self_cands, True, patterns)
     self.create_cross_patt(opp_cands, False, patterns)
+    return win
