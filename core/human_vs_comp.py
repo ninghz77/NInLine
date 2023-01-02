@@ -50,6 +50,7 @@ class HumanVsComputer(GameBase):
       self.init_step(self.scorer1, self.player1)
       self.human = self.player2
       self.computer = self.player1
+      self.board.draw_turn(self.human)
     else:
       self.human = self.player1
       self.computer = self.player2

@@ -22,7 +22,6 @@ class TestFullLineScorer(ut.TestCase):
       full_line, patterns, cross_cands)
     self.assertEqual(win, expected_win)
     scores = [pat.score() for pat in patterns]
-    self.assertEqual(len(scores), len(expected_scores))
     np.testing.assert_almost_equal(scores, expected_scores)
 
   def test_full_line_score_line(self):
@@ -47,13 +46,13 @@ class TestFullLineScorer(ut.TestCase):
     self._test_full_line_score_line(
       [-1, 0, 1, 1, 1, 1, 2, 2, 0, 0, 0], 
       1, 
-      [40, 1000],
+      [40, 5000],
       False,
     )
     self._test_full_line_score_line(
       [-1, 0, 1, 2, 1, 1, 2, 2, 0, 0, 0], 
       2, 
-      [0, 200],
+      [0, 250],
       False,
     )
     self._test_full_line_score_line(
@@ -95,13 +94,115 @@ class TestFullLineScorer(ut.TestCase):
     self._test_full_line_score_line(
       [-1, 0, 0, 0, 2, 1, 2, 2, 2, 0, -1], 
       1, 
-      [100, 10, 0, 5000000],
+      [125, 10, 0, 5000000],
       False,
     )
     self._test_full_line_score_line(
       [-1, 0, 0, 0, 2, 1, 2, 2, 1, 0, -1], 
       1, 
       [0, 10, 0, 100],
+      False,
+    )
+    self._test_full_line_score_line( # side bridge
+      [-1, 0, 0, 0, 1, 1, 1, 0, 1, 0, -1], 
+      1, 
+      [5000, 4000],
+      False,
+    )
+    self._test_full_line_score_line( # two side bridges
+      [-1, 0, 1, 0, 1, 1, 1, 0, 1, 0, -1], 
+      1, 
+      [250, 4000, 4000],
+      False,
+    )
+    self._test_full_line_score_line( # one side bridges
+      [-1, 0, 0, 1, 0, 1, 1, 0, 1, 0, -1], 
+      1, 
+      [0, 4000, 4000],
+      False,
+    )
+    self._test_full_line_score_line( # one side bridges
+      [-1, 0, 1, 0, 0, 1, 1, 0, 1, 0, -1], 
+      1, 
+      [80, 4000],
+      False,
+    )
+    self._test_full_line_score_line( # other player one side bridges
+      [-1, 0, 1, 0, 0, 2, 1, 0, 1, 0, -1], 
+      2, 
+      [10, 20, 0],
+      False,
+    )
+    self._test_full_line_score_line( # other player one side bridges
+      [-1, 0, 1, 0, 0, 2, 1, 0, 1, 0, 0], 
+      2, 
+      [10, 20, 0],
+      False,
+    )
+    self._test_full_line_score_line( # other player one side bridges
+      [-1, 0, 1, 1, 0, 2, 0, 0, 0, 0, 0], 
+      2, 
+      [0, 20],
+      False,
+    )
+    self._test_full_line_score_line( # other player one side bridges
+      [-1, 0, 0, 1, 1, 2, 0, 0, 0, 0, 0], 
+      2, 
+      [40, 10],
+      False,
+    )
+    self._test_full_line_score_line( # at side of missing one
+      [1, 1, 1, 0, 1, 2, 0, 0, 0, 0, 0], 
+      2, 
+      [10, 0, 10],
+      False,
+    )
+    self._test_full_line_score_line( # fill hole of bridge
+      [-1, 0, 1, 1, 1, 2, 1, 0, 0, 0, 0], 
+      2, 
+      [10, 125, 0, 5000000],
+      False,
+    )
+    self._test_full_line_score_line( # block missing two
+      [-1, 0, 1, 1, 1, 2, 0, 0, 0, 0, 0], 
+      2, 
+      [500000, 10],
+      False,
+    )
+    self._test_full_line_score_line( # block missing two
+      [0, 1, 1, 1, 0, 2, 0, 0, 0, 0, 0], 
+      2, 
+      [0, 20],
+      False,
+    )
+    self._test_full_line_score_line( # missing one
+      [-1, -1, 1, 1, 1, 1, 0, 0, 0, 0, 0], 
+      1, 
+      [5000],
+      False,
+    )
+    self._test_full_line_score_line( # single token
+      [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], 
+      1, 
+      [20],
+      False,
+    )
+    self._test_full_line_score_line( # single token
+      [0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0], 
+      1, 
+      [10, 10],
+      False,
+    )
+    self._test_full_line_score_line( # single token
+      [0, 0, 2, 1, 1, 1, 0, 0, 0, 0, 0], 
+      1, 
+      [250],
+      False,
+    )
+    self._test_full_line_score_line( # single token
+      [0, 2, 1, 1, 0, 1, 0, 0, 0, 0, 0], 
+      1, 
+      [20, 200],
       False,
     )
 
@@ -152,21 +253,52 @@ class TestFullLineScorer(ut.TestCase):
     self.assertAlmostEqual(sg.score, expected_score)
     self.assertEqual(sg.win, expected_win)
 
+  #@ut.skip
   def test_score_grid_normal(self):
     grids = np.zeros((15, 15), dtype=np.int32)
     grids[5, 2:5] = 1
     grids[7, 2:4] = 2
-    self._test_score_grid(grids, 5, 5, 2, 500070, False)
+    self._test_score_grid(grids, 5, 5, 2, 500110, False)
     self._test_score_grid(grids, 7, 4, 2, 5060, False)
 
+  #@ut.skip
   def test_score_grid_win(self):
     grids = np.zeros((15, 15), dtype=np.int32)
     grids[5, 1:5] = 1
     grids[7, 1:5] = 2
     self._test_score_grid(grids, 5, 0, 1, 10000030, True)
     self._test_score_grid(grids, 5, 5, 1, 10000060, True)
-    self._test_score_grid(grids, 5, 0, 2, 5000030, False)
-    
+    self._test_score_grid(grids, 5, 0, 2, 5000050, False)
+
+  #@ut.skip
+  def test_score_grid_simple(self):
+    grids = np.zeros((15, 15), dtype=np.int32)
+    grids[5, 5] = 1
+    self._test_score_grid(grids, 5, 7, 1, 120, False)
+
+  #@ut.skip
+  def test_score_grid_simple2(self):
+    grids = np.zeros((15, 15), dtype=np.int32)
+    grids[5, 5] = 1
+    self._test_score_grid(grids, 5, 6, 1, 140, False)
+
+  @ut.skip
+  def test_score_grid_missing_one_bridge(self):
+    grids = np.zeros((15, 15), dtype=np.int32)
+    grids[5, 2:5] = 1
+    grids[5, 6] = 1
+    grids[5, 7] = 2
+    print(grids)
+    self._test_score_grid(grids, 5, 7, 2, 0, False)
+
+  @ut.skip
+  def test_score_grid_missing_one_bridge2(self):
+    grids = np.zeros((15, 15), dtype=np.int32)
+    grids[5, 2:5] = 1
+    grids[5, 6] = 1
+    print(grids)
+    self._test_score_grid(grids, 5, 4, 2, 500007.0, False)
+
   def _test_cross_patt(
     self, 
     grids,
@@ -183,9 +315,10 @@ class TestFullLineScorer(ut.TestCase):
     win = scorer.find_patts_from_4_lines(full_lines, patterns)
     self.assertEqual(win, expected_win)
     scores = [pat.score() for pat in patterns]
-    self.assertEqual(len(scores), len(expected_scores))
+    # self.assertEqual(len(scores), len(expected_scores))
     np.testing.assert_almost_equal(scores, expected_scores)
 
+  #@ut.skip
   def test_cross_patt_normal(self):
     grids = np.zeros((8, 8), dtype=np.int32)
     grids[2, 1:3] = 1
@@ -193,7 +326,7 @@ class TestFullLineScorer(ut.TestCase):
     grids[3, 2] = 1
     self._test_cross_patt(
       grids, 2, 3, 1, 
-      [20, 5000, 20, 5000, 2500000, 0],
+      [20, 5000, 20, 5000, 2500000],
       False,
     )
     self._test_cross_patt(
@@ -204,17 +337,18 @@ class TestFullLineScorer(ut.TestCase):
     grids[4, 1] = 0
     self._test_cross_patt(
       grids, 2, 3, 1, 
-      [20, 5000, 20, 80, 0, 0],
+      [20, 5000, 20, 80, 0],
       False,
     )
     grids[4, 1] = 1
     grids[5, 0] = 2
     self._test_cross_patt(
       grids, 2, 3, 1, 
-      [20, 5000, 20, 200, 0, 0],
+      [20, 5000, 20, 250, 0],
       False,
     )
 
+  #@ut.skip
   def test_cross_patt_missing_one(self):
     grids = np.zeros((8, 8), dtype=np.int32)
     grids[2, 1:4] = 1
@@ -222,7 +356,7 @@ class TestFullLineScorer(ut.TestCase):
     grids[3, 3] = 1
     self._test_cross_patt(
       grids, 2, 4, 1,
-      [20, 10e6/3, 20, 5000, 2500000, 0],
+      [20, 10e6/3, 20, 5000, 2500000],
       False,
     )
     self._test_cross_patt(
@@ -235,10 +369,34 @@ class TestFullLineScorer(ut.TestCase):
     grids[1, 5] = 1
     self._test_cross_patt(
       grids, 2, 4, 1,
-      [20, 10e6/3, 20, 5000, 2500000, 0],
+      [20, 10e6/3, 20, 5000, 2500000],
       False,
     )
 
+  #@ut.skip
+  def test_cross_patt_side_bridge(self):
+    grids = np.zeros((8, 8), dtype=np.int32)
+    grids[2, 2:4] = 1
+    grids[4, 2] = 1
+    grids[1, 5] = 1
+    self._test_cross_patt(
+      grids, 2, 4, 1,
+      [20, 5000, 20, 0, 4000, 2500000],
+      False,
+    )
+    self._test_cross_patt(
+      grids, 2, 4, 2,
+      [20, 40, 0, 20, 0, 0, 0, 1250000],
+      False,
+    )
+    # bridge
+    grids[3, 3] = 1
+    grids[1, 5] = 1
+    self._test_cross_patt(
+      grids, 2, 4, 1,
+      [20, 5000, 20, 10e6/3, 2500000],
+      False,
+    )
 
 if __name__ == '__main__':
     ut.main()

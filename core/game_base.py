@@ -39,6 +39,8 @@ class GameBase:
     self.scorer2 = self.player2_scorer_cls(self.grids, self.m, self.player2)
     self.player_logs = [PlayerLog(self.player1), PlayerLog(self.player2)]
     self.steps = []
+    self.winner = 0
+    self.crashed_player = 0
 
   def grid_valid(self, i, j):
     sz = self.grids.shape
