@@ -2,18 +2,21 @@ import copy
 import numpy as np
 from scorers.full_line_scorer import FullLineScorer
 from scorers.half_line_scorer import HalfLineScorer
-from scorers.scorer_base import ScorerBase
+from scorers.scorer_base import ScorerBase, ScoredGrid
 
 class ScoredPath:
   def __init__(self, scored_grid=None) -> None:
     self.win = False
     self.score = 0
-    self.scored_grids = [] if not scored_grid else [scored_grid]
+    self.scored_grids: list[ScoredGrid] = [] if not scored_grid else [scored_grid]
 
   def print_path(self):
     print("Aggregated score: ", self.score)
     for sg in self.scored_grids:
-      print("P{} {}: {}, {}".format(sg.player, sg.grid, sg.score, sg.win))
+      print("P{} {}: a{} / b{} / {}, {}".format(
+        sg.player, sg.grid, 
+        sg.attack_score, sg.score - sg.attack_score, 
+        sg.score, sg.win))
 
 class NStepScorer(ScorerBase):
 
@@ -65,7 +68,7 @@ class NStepScorer(ScorerBase):
       
     return paths #if paths else [ScoredPath()]
 
-  def aggregate_score_for_a_path(self, scored_path):
+  def aggregate_score_for_a_path(self, scored_path:ScoredPath):
     first_grid = scored_path.scored_grids[0]
     if first_grid.win:  # Already win, set score to max
       scored_path.score = len(self.top_n_steps) * self.max_num
@@ -74,9 +77,12 @@ class NStepScorer(ScorerBase):
 
     score = 0
     scale = 1
+    k = 0
     for g in scored_path.scored_grids:
-      score += scale * g.score
+      s = g.score if k == 0 else g.attack_score
+      score += scale * s
       scale *= -self.weight
+      k += 1
     scored_path.score = score
     scored_path.win = False
     return score

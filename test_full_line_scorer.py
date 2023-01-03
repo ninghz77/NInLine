@@ -299,6 +299,74 @@ class TestFullLineScorer(ut.TestCase):
     print(grids)
     self._test_score_grid(grids, 5, 4, 2, 500007.0, False)
 
+  def _test_cross_patt_on_line(
+    self, 
+    full_line, 
+    player, 
+    num_good_cand,
+  ):
+    grids = np.zeros((15, 15), dtype=np.int32)
+    m = 5
+    full_line[m] = player
+    scorer = FullLineScorer(grids, m, player)
+    cross_cands = []
+    # look at right side seg
+    patt_info_r = scorer.one_side_patt_info(full_line[m+1:])
+    # look at left side seg
+    patt_info_l = scorer.one_side_patt_info(full_line[:m][::-1])
+    scorer.cross_candidate_info(patt_info_r, patt_info_l, cross_cands)
+    self.assertEqual(len(cross_cands), num_good_cand)
+
+  def test_cross_patt_on_line(self):
+    self._test_cross_patt_on_line( # not good-cand, empty not enough
+      [0, 0, -1, 0, 1, 2, 1, 0, -1, 0, 0], 
+      2, 0,
+    )
+    self._test_cross_patt_on_line( # not good-cand, too short
+      [0, 0, 0, 0, 1, 2, 0, 0, -1, 0, 0], 
+      2, 0,
+    )
+    self._test_cross_patt_on_line( # not good-cand, other side blocked
+      [0, 0, 0, 1, 1, 2, 2, 0, 0, 0, 0], 
+      2, 0,
+    )
+    self._test_cross_patt_on_line( # good-cand on other side empty
+      [0, 0, 0, 1, 1, 2, 0, 0, 0, 0, 0], 
+      2, 1,
+    )
+    self._test_cross_patt_on_line( # good-cand on other side empty
+      [0, 0, 0, 1, 1, 2, 0, 0, 0, 0, 0], 
+      1, 1,
+    )
+    self._test_cross_patt_on_line( # good-cand on other side empty
+      [0, 0, 1, 0, 1, 2, 0, 0, 0, 0, 0], 
+      2, 1,
+    )
+    self._test_cross_patt_on_line( # good-cand on other side empty
+      [0, -1, 1, 1, 1, 2, 0, 0, 0, 0, 0], 
+      2, 1,
+    )
+    self._test_cross_patt_on_line( # good-cand cross both sides
+      [0, 0, 0, 0, 1, 2, 1, 0, 0, 0, 0], 
+      2, 1,
+    )
+    self._test_cross_patt_on_line( # two good-cand from opponent, dedup to 1
+      [0, 0, 1, 0, 1, 2, 1, 0, 0, 0, 0], 
+      2, 1,
+    )
+    self._test_cross_patt_on_line( # current pos is blocked by player 1, not good for 2
+      [0, 0, 1, 0, 1, 2, 0, 2, 2, 0, 0], 
+      2, 1,
+    )
+    self._test_cross_patt_on_line( # good cand from two sides
+      [0, 0, 1, 1, 0, 2, 0, 2, 2, 0, 0], 
+      2, 2,
+    )
+    self._test_cross_patt_on_line( # not good-cand, other side blocked
+      [0, 0, 1, 1, 0, 2, 0, 0, 0, 0, 0], 
+      2, 1,
+    )
+
   def _test_cross_patt(
     self, 
     grids,

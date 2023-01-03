@@ -1,6 +1,7 @@
 import numpy as np
 from scorers.scorer_base import RuleBasedScorerBase, ScoredGrid
 from scorers.pattern import (
+  Patttern,
   WinPat, 
   MissingOnePat, 
   MissingTwoPat, 
@@ -30,7 +31,8 @@ class FullLineScorer(RuleBasedScorerBase):
     max_len = 2 * self.m + 1
     scored_grid = ScoredGrid(0, (i, j))
     full_lines = self.make_full_lines(i, j)
-    scored_grid.score, scored_grid.win = self.score_full_lines(full_lines)
+    scored_grid.score, scored_grid.attack_score, scored_grid.win = \
+      self.score_full_lines(full_lines)
     scored_grid.player = self.player
     return scored_grid
 
@@ -76,12 +78,16 @@ class FullLineScorer(RuleBasedScorerBase):
     return full_lines
 
   def score_full_lines(self, full_lines):
-    patterns = []
+    patterns: list[Patttern] = []
     win = self.find_patts_from_4_lines(full_lines, patterns)
     score = 0
+    attack_score = 0
     for pat in patterns:
-      score += pat.score()
-    return score, win
+      s = pat.score()
+      score += s
+      if pat.is_self:
+        attack_score += s
+    return score, attack_score, win
 
   # return: PattInfo
   def one_side_patt_info(self, side):
@@ -182,6 +188,7 @@ class FullLineScorer(RuleBasedScorerBase):
           is_bridge=True,
           bridge_empties=1,
           bridge_inner_pos=True,
+          empties_at_pos=1,
         ),
         patterns,
       )
@@ -207,24 +214,28 @@ class FullLineScorer(RuleBasedScorerBase):
         patt_info.num_tokens, 
         empty_ends, 
         is_self=patt_info.is_self,
+        empties_at_pos=empty_ends[1],
+        bridge_inner_pos=False,
       ))
 
     if patt_info.ext_tokens > 0:
       if patt_info.num_tokens == 0: 
         empty_ends = [
-          patt_info.empty_ends[0] + self.num_empty_other_side(patt_info_other), 
           patt_info.ext_empties,
+          patt_info.empty_ends[0] + self.num_empty_other_side(patt_info_other), 
         ]
         patts.append(PattInfo(
           patt_info.ext_tokens, 
           empty_ends, 
           is_self=patt_info.is_self,
           block_dist=1,
+          empties_at_pos=empty_ends[1],  
+          bridge_inner_pos=False,        
         ))
       else: # patt_info.num_tokens > 0:
         empty_ends = [
-          self.num_empty_other_side(patt_info_other), 
           patt_info.ext_empties,
+          self.num_empty_other_side(patt_info_other), 
         ]
         patts.append(PattInfo(
           num_tokens, 
@@ -233,6 +244,7 @@ class FullLineScorer(RuleBasedScorerBase):
           is_bridge=True,
           bridge_empties=1,
           bridge_inner_pos=False,
+          empties_at_pos=empty_ends[1],          
         ))
     return patts
 
@@ -252,18 +264,24 @@ class FullLineScorer(RuleBasedScorerBase):
       num_tokens=1, # myself in the middle of the line
       empty_ends=[0.0, 0.0],
       is_self=True,
+      empties_at_pos=1,    
+      bridge_inner_pos=False,      
     )
     if patt_info_l.is_self:
       patt_info.num_tokens += patt_info_l.num_tokens
       patt_info.empty_ends[0] = patt_info_l.empty_ends[0]
     elif patt_info_l.num_tokens <= 0:
       patt_info.empty_ends[0] = patt_info_l.empty_ends[0]
+    if patt_info_l.num_tokens <= 0:
+      patt_info.empties_at_pos += patt_info_l.empty_ends[0]
 
     if patt_info_r.is_self:
       patt_info.num_tokens += patt_info_r.num_tokens
       patt_info.empty_ends[1] = patt_info_r.empty_ends[0]
     elif patt_info_r.num_tokens <= 0:
       patt_info.empty_ends[1] += patt_info_r.empty_ends[0]
+    if patt_info_r.num_tokens <= 0:
+      patt_info.empties_at_pos += patt_info_l.empty_ends[0]
 
     self.create_a_single_seg_patt(patt_info, patterns)
 
@@ -276,6 +294,8 @@ class FullLineScorer(RuleBasedScorerBase):
           is_bridge=True,
           bridge_empties=1,
           bridge_inner_pos=(patt_info_l.num_tokens <= 0),
+          empties_at_pos=patt_info.empties_at_pos,
+          block_dist=(1 if patt_info_l.num_tokens <= 0 else 0),
         ),
         patterns,
       )
@@ -289,6 +309,8 @@ class FullLineScorer(RuleBasedScorerBase):
           is_bridge=True,
           bridge_empties=1,
           bridge_inner_pos=(patt_info_r.num_tokens <= 0),
+          empties_at_pos=patt_info.empties_at_pos,
+          block_dist=(1 if patt_info_r.num_tokens <= 0 else 0),
         ),
         patterns,
       )
@@ -319,6 +341,7 @@ class FullLineScorer(RuleBasedScorerBase):
             is_bridge=True,
             bridge_empties=bridge_empties,
             bridge_inner_pos=True,
+            empties_at_pos=bridge_empties,
         )
         if CrossPat.is_good_cand(cand, self.m):
           cross_cand_map[cand.is_self] = cand

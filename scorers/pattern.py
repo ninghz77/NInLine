@@ -10,6 +10,7 @@ class PattInfo:
     bridge_empties=0,
     bridge_inner_pos=True,
     block_dist=0,
+    empties_at_pos=1,
   ) -> None:
     self.num_tokens = num_tokens
     self.empty_ends = empty_ends
@@ -20,6 +21,7 @@ class PattInfo:
     self.bridge_empties = bridge_empties
     self.bridge_inner_pos = bridge_inner_pos
     self.block_dist = block_dist
+    self.empties_at_pos = empties_at_pos
 
   def get_inner_tokens(self):
     return self.num_tokens if self.num_tokens > 0 else self.ext_tokens
@@ -172,8 +174,17 @@ class CrossPat(Patttern):
     total_empty_ends = empty_ends[0] + empty_ends[1] + cand.bridge_empties
     if cand.num_tokens + total_empty_ends < m:
       return False
-    return (cand.num_tokens >= m - 2) or \
-      (cand.num_tokens == m - 3 and empty_ends[0] >= 1 and total_empty_ends >= 4)
+    if (cand.num_tokens >= m - 2):
+      return True
+    else:
+      good_pos = (cand.empties_at_pos - cand.block_dist >= 2) \
+        or cand.bridge_inner_pos
+      return (
+        cand.num_tokens == m - 3
+        and empty_ends[0] >= 1
+        and good_pos
+        and total_empty_ends >= 4
+      )
 
   def score(self):
     good_cand = len(self.cross_cands)

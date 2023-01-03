@@ -3,6 +3,18 @@ import numpy as np
 import math
 
 
+class ScoredGrid:
+  def __init__(self, score, grid, attack_score=0) -> None:
+    self.score = score
+    self.attack_score = attack_score
+    self.grid = grid
+    self.win = False
+    self.player = 0
+
+  def __lt__(self, other):
+    return self.score > other.score
+
+
 class ScorerBase:
 
   def __init__(self, grids, m, player):
@@ -40,15 +52,6 @@ class ScorerBase:
   def is_token(self, grid_val):
     return grid_val == self.player or grid_val == self.opponent
 
-class ScoredGrid:
-  def __init__(self, score, grid) -> None:
-    self.score = score
-    self.grid = grid
-    self.win = False
-    self.player = 0
-
-  def __lt__(self, other):
-    return self.score > other.score
 
 class RuleBasedScorerBase(ScorerBase):
 
