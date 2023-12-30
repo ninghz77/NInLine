@@ -24,6 +24,7 @@ class ComputerVsComputer(GameBase):
       player2_scorer_cls=player2_scorer_cls,
     )
 
+    self.start()
     self.board = Board(
       grid_size,
       N,
