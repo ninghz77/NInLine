@@ -96,9 +96,10 @@ class NStepScorer(ScorerBase):
       self.grids, self.player, self.top_n_steps)
     self.aggregate_score_for_paths(scored_paths)
     scored_paths.sort(key=lambda x:x.score, reverse=True)
-    print("---------")
+    # print("---------")
     for sp in scored_paths:
-      sp.print_path()
+      # sp.print_path()
+      pass
     grid = scored_paths[0].scored_grids[0]
     return grid
 

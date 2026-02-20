@@ -3,9 +3,10 @@ from scorers.half_line_scorer import HalfLineScorer
 from scorers.n_step_scorer import HLNStepScorer
 from scorers.n_step_scorer import FLNStepScorer
 from scorers.full_line_scorer import FullLineScorer
+from scorers.alpha_beta_scorer import AlphaBetaScorer
 
 def Evaluate(N, m, num_races=1):
-  scorers_cls = [FullLineScorer, HalfLineScorer, FLNStepScorer]
+  scorers_cls = [FullLineScorer, HalfLineScorer, HLNStepScorer, FLNStepScorer, AlphaBetaScorer]
   evaluator = Evaluator(N, m, scorers_cls, num_races)
   evaluator.evaluate()
   evaluator.display_stats()

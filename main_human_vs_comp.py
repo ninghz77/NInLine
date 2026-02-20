@@ -5,6 +5,7 @@ from scorers.full_line_scorer import FullLineScorer
 from scorers.opponent_scorer import HLOpponentScorer
 from scorers.n_step_scorer import FLNStepScorer
 from scorers.n_step_scorer import HLNStepScorer
+from scorers.alpha_beta_scorer import AlphaBetaScorer
 
 
 def run():
@@ -21,7 +22,7 @@ def run():
     grid_size,
     N,
     m,
-    scorer_cls=FLNStepScorer,
+    scorer_cls=AlphaBetaScorer,
     who_first="computer",  # computer or human
   )
   screen = turtle.Screen()
