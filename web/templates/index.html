@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>N in a Line</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div id="layout">
+
+    <!-- ── Sidebar ─────────────────────────────────────────── -->
+    <aside id="panel">
+      <h1>N in a Line</h1>
+
+      <!-- Status -->
+      <section id="status-section">
+        <div id="status-dot"></div>
+        <span id="status-text">Start a new game</span>
+      </section>
+
+      <!-- Regret -->
+      <button id="btn-regret" class="btn secondary" disabled>↩ Regret</button>
+
+      <hr>
+
+      <!-- Settings -->
+      <h3>Settings</h3>
+
+      <label>
+        Mode
+        <select id="sel-mode">
+          <option value="hvc">Human vs AI</option>
+          <option value="hvh">Human vs Human</option>
+          <option value="cvc">AI vs AI</option>
+        </select>
+      </label>
+
+      <label id="row-first">
+        You play as
+        <select id="sel-first">
+          <option value="second">White (2nd move)</option>
+          <option value="first">Black (1st move)</option>
+        </select>
+      </label>
+
+      <label id="row-ai">
+        AI difficulty
+        <select id="sel-ai">
+          <option value="full_line">Easy – fast</option>
+          <option value="alpha_beta">Hard – slow</option>
+        </select>
+      </label>
+
+      <label>
+        Board size
+        <select id="sel-n">
+          <option value="9">9 × 9</option>
+          <option value="13">13 × 13</option>
+          <option value="15" selected>15 × 15</option>
+          <option value="19">19 × 19</option>
+        </select>
+      </label>
+
+      <label>
+        Win length (m)
+        <select id="sel-m">
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5" selected>5</option>
+        </select>
+      </label>
+
+      <button id="btn-new" class="btn primary">▶ New Game</button>
+
+      <footer>
+        <p>Click an intersection to place a stone.</p>
+        <p>Hard AI can take several seconds per move.</p>
+      </footer>
+    </aside>
+
+    <!-- ── Board ────────────────────────────────────────────── -->
+    <main id="board-wrap">
+      <canvas id="board"></canvas>
+      <div id="thinking-overlay" hidden>
+        <div class="spinner"></div>
+        <span>AI is thinking…</span>
+      </div>
+    </main>
+
+  </div>
+  <script src="/static/game.js"></script>
+</body>
+</html>
