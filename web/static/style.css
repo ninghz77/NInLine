@@ -1,0 +1,204 @@
+/* ── Reset ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Page ───────────────────────────────────────────────── */
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: #12121e;
+  color: #e0e0e0;
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+#layout {
+  display: flex;
+  width: 100%;
+  max-width: 1100px;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+#panel {
+  width: 220px;
+  flex-shrink: 0;
+  background: #1a1a2e;
+  border-right: 1px solid #2a2a42;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+h1 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #89b4fa;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #6e7aab;
+  margin-top: 2px;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #262640;
+}
+
+/* ── Status widget ───────────────────────────────────────── */
+#status-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #0f3460;
+  border-radius: 10px;
+  padding: 10px 12px;
+  min-height: 54px;
+}
+
+#status-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #555;
+  border: 2px solid transparent;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  transition: background 0.25s, border-color 0.25s;
+}
+
+#status-dot.thinking {
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+#status-text {
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: #cdd6f4;
+}
+
+/* ── Form controls ───────────────────────────────────────── */
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: #9399b2;
+}
+
+select {
+  background: #1e1e38;
+  color: #cdd6f4;
+  border: 1px solid #36365a;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  appearance: auto;
+}
+
+select:focus {
+  outline: none;
+  border-color: #89b4fa;
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn {
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.btn:hover:not(:disabled)  { opacity: 0.88; }
+.btn:active:not(:disabled) { transform: scale(0.97); }
+.btn:disabled              { opacity: 0.35; cursor: not-allowed; }
+
+.btn.primary   { background: #89b4fa; color: #1a1a2e; margin-top: 4px; }
+.btn.secondary { background: #2a2a46; color: #cdd6f4; }
+
+/* ── Footer note ─────────────────────────────────────────── */
+footer {
+  margin-top: auto;
+  font-size: 0.7rem;
+  color: #4a4a6a;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── Board area ──────────────────────────────────────────── */
+#board-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  background: #1c1c2e;
+  position: relative;
+}
+
+#board {
+  display: block;
+  cursor: crosshair;
+  border-radius: 6px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  /* crisp pixels on HiDPI (actual scaling done via ctx.setTransform) */
+  image-rendering: pixelated;
+}
+
+/* ── AI thinking overlay ─────────────────────────────────── */
+#thinking-overlay {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(10, 10, 28, 0.82);
+  border: 1px solid #36365a;
+  border-radius: 24px;
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  color: #89b4fa;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+
+#thinking-overlay[hidden] { display: none; }
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #36365a;
+  border-top-color: #89b4fa;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Mobile ──────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  #layout     { flex-direction: column; }
+  #panel      { width: 100%; flex-direction: row; flex-wrap: wrap; padding: 12px; gap: 10px; }
+  h1          { width: 100%; }
+  #board-wrap { padding: 14px; }
+}
